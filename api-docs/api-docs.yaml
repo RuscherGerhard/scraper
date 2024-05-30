@@ -1,0 +1,88 @@
+openapi: 3.0.1
+
+info:
+  title: Sample API
+  description: Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.
+  version: 0.1.9
+servers:
+  - url: http://localhost:3000
+    description: Optional server description, e.g. Main (production) server
+  # - url: http://staging-api.example.com
+  #   description: Optional server description, e.g. Internal staging server for testing
+paths:
+  /test_get:
+    summary: test get endpoint
+    get: 
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/responseOne'
+      tags:
+        - test_operations
+      summery: demonstration of a get route!
+      operationId: test_get
+      parameters: 
+        - in: query 
+          name: param1
+          description: first parameter
+          required: true
+          schema:
+            type: string
+            example: "hello world!"
+# test post
+  /test_post:
+    post: 
+      summary: test post endpoint
+      requestBody:
+        description: the request body
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/queryTwo"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/responseTwo'
+      tags:
+        - test_operations
+      summery: demonstration of a post route!
+      operationId: test_post
+
+components:
+  schemas:
+    responseOne:
+      type: object
+      properties:
+        status_code:
+          type: integer
+        param:
+          type: string
+      required:
+        - status_code
+        - param
+    responseTwo:
+      type: object
+      properties:
+        status_code: 
+          type: integer
+        param:
+          type: string
+      required:
+        - status_code
+        - param
+    queryTwo:
+      type: object
+      properties:
+        param1:
+          type: string
+          example: 'hello!'
+        param2:
+          type: string
+          example: 'world!'

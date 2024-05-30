@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "sourceMap": true,
+    "removeComments": true,
+    "outDir": "application",
+    "allowJs": true,
+    "target": "ES2017",
+    "skipLibCheck": true    
+  },
+  "include":["./src/**/*", "./src/test/**/*"],
+  "exclude": [
+    "node_modules",
+    "!node_modules/@types",
+]
+
+}

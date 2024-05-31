@@ -2,4 +2,7 @@
 import Server from './server';
 new Server();
 
-console.log('Hello World!')
+/**
+ * TODO : 
+ * look at how you can run the tests without building them together with the source code!!!!!
+ */

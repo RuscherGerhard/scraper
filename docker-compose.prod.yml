@@ -1,0 +1,9 @@
+# here add all instructions to run you app in production!!!
+services:
+  api:
+    build:
+      context: .
+      target: production
+      dockerfile: ./docker-files/app/app.Dockerfile
+    ports:
+      - 3000:3000

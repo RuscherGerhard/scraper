@@ -8,7 +8,7 @@
     "target": "ES2017",
     "skipLibCheck": true    
   },
-  "include":["./src/**/*", "./src/test/**/*"],
+  "include":["./src/**/*"],
   "exclude": [
     "node_modules",
     "!node_modules/@types",

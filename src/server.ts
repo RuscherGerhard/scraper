@@ -47,6 +47,6 @@ export default class Server{
 
         this.server.use('/swagger', swaggerUi.serve, swaggerUi.setup(swagger_json));
 
-        log(`swagger endpoint docs under localhost:3000/swagger`, LOG_LEVEL.INFO);
+        log(`swagger endpoint docs under hostip:3000/swagger`, LOG_LEVEL.INFO); // TODO : this should be host ip not hardcoded localhost!!!!!
     }
 }

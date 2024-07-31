@@ -34,7 +34,7 @@ module.exports = {
   recursive: true,
   reporter: 'spec',
   'reporter-option': ['foo=bar', 'baz=quux'], // array, not object
-  require: '@babel/register',
+  require: 'ts-node/register',
   retries: 1,
   slow: '75',
   sort: false,
@@ -45,6 +45,6 @@ module.exports = {
   ui: 'bdd',
   'v8-stack-trace-limit': 100, // V8 flags are prepended with "v8-"
   watch: false,
-  'watch-files': ['lib/**/*.js', 'test/**/*.jsnpm install'],
+  'watch-files': ['lib/**/*.js', 'test/**/*.jsnpm install', 'application/test/**/*.spec.js'],
   'watch-ignore': ['lib/vendor']
 };

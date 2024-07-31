@@ -1,0 +1,1 @@
+FROM rediscommander/redis-commander:latest AS redis_commander_production

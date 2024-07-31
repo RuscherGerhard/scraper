@@ -1,6 +1,6 @@
 'use strict'
 import Server from './server';
-new Server();
+Server.getInstance();
 
 /**
  * TODO : 

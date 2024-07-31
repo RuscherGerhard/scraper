@@ -10,6 +10,29 @@ servers:
   # - url: http://staging-api.example.com
   #   description: Optional server description, e.g. Internal staging server for testing
 paths:
+  /scrape-site:
+    summary: scrape order
+    get:
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/responseOne'
+      tags:
+        - scrape_operation
+      summery: scraper
+      operationId: scraper
+      parameters: 
+        - in: query 
+          name: param1
+          description: first parameter
+          required: true
+          schema:
+            type: string
+            example: "https://www.publi24.ro"
+
   /test_get:
     summary: test get endpoint
     get: 

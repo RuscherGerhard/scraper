@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "NodeNext",
     "sourceMap": true,
     "removeComments": true,
     "outDir": "application",
     "allowJs": true,
-    "target": "ES2017",
-    "skipLibCheck": true    
+    "target": "ES6",
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "esModuleInterop":false
   },
   "include":["./src/**/*"],
   "exclude": [

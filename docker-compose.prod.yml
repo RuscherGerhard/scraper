@@ -5,5 +5,14 @@ services:
       context: .
       target: production
       dockerfile: ./docker-files/app/app.Dockerfile
+    restart: always
     ports:
       - 3000:3000
+  redis-db:
+    build:
+      context: .
+      target: production
+      dockerfile: ./docker-files/app/redis.Dockerfile
+    restart: always
+    ports:
+      - 6379:6379

@@ -6,12 +6,14 @@ let error_msg = function(msg:string):string{
    return `[ERROR]: ${msg}`;
 }
 
-describe(">>> Test controller",function (){
-   let app:Server;
+describe(">>> Test controller",async function (){
    
-   before(">>> Instantiating app server!", function serverInit(){
-      app = new Server();
-   });
+   let app:Server = Server.getInstance();
+   
+   
+   // before(">>> Instantiating app server!", function serverInit(){
+   //    app = Server.getServer();
+   // });
 
    it("- it should call /test_get successfully", async function (){
       
@@ -39,8 +41,5 @@ describe(">>> Test controller",function (){
       assert.equal(req_body.param2, payload.param2, error_msg(`param2: ${res.body.req_body.param1}, and not: ${payload.param2}!`));
    });
 
-   after(">>> Destroying app server!", function(){
-      //provoke garbage collection!
-      app = null;
-   });
+   await app.server.close();
 });

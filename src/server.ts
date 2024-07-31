@@ -3,38 +3,55 @@
 import * as express from 'express';
 import {utils, log, LOG_LEVEL} from './utils';
 import { TestController } from './controllers/test-controller';
+import ScrapeController  from './controllers/scrape-controller';
 import * as swaggerUi from 'swagger-ui-express';
 import * as YAML from 'yamljs';
+import ScraperManager from './scraper/scraper-manager'
+
+var server:Server;
 
 export default class Server{
+    app:any;
     server:any;
+    private static instance:Server;
 
-    constructor(){
+    static getInstance():Server{
+        
+        if(server == null){
+            Server.instance =  new Server();
+        }
+        return Server.instance;
+    }
+
+    private constructor(){
         this.setUpServer();
     }
 
     private setUpServer(){
         
         //initialize
-        this.server = express();
+        this.app = express();
         
 
         // set port to listen
-        this.server.listen(utils.app_port, 
+        this.server = this.app.listen(utils.app_port, 
             ()=>{log(`server listens on ${utils.app_port}`, LOG_LEVEL.INFO)}
         );
 
+        
+
         //setup the controllers!
-        this.updateServerRoutes();
+        this.updateServerRoutes(new ScraperManager());
 
         // swagger init!
         this.makeSwagger();
     }
 
-    private updateServerRoutes(){
+    private updateServerRoutes(scraper_man:ScraperManager){
         log(`firing up controllers`, LOG_LEVEL.INFO);
 
-        new TestController(this.server);
+        new TestController(this.app);
+        new ScrapeController(this.app, scraper_man);
     }
 
     private makeSwagger(){
@@ -45,7 +62,7 @@ export default class Server{
 
         let swagger_json:any = YAML.load(path);
 
-        this.server.use('/swagger', swaggerUi.serve, swaggerUi.setup(swagger_json));
+        this.app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swagger_json));
 
         log(`swagger endpoint docs under hostip:3000/swagger`, LOG_LEVEL.INFO); // TODO : this should be host ip not hardcoded localhost!!!!!
     }

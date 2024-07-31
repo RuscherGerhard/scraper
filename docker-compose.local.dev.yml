@@ -1,1 +1,22 @@
-# here add all the instructions to run run the periferical containers for your app for dev perpouses!!!
+# here add all the instructions to run the periferical containers for your app for dev perpouses!!!
+services:
+  redis-db:
+    build:
+      context: .
+      target: production
+      dockerfile: ./docker-files/app/redis.Dockerfile
+    restart: always
+    ports:
+      - 6379:6379
+  redis-commander:
+    build:
+      context: .
+      target: redis_commander_production
+      dockerfile: ./docker-files/app/redis-commander.Dockerfile
+    restart: always
+    environment:
+      - REDIS_HOSTS=local:redis-db:6379
+    ports:
+      - 8081:8081
+    depends_on:
+      - redis-db

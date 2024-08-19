@@ -6,7 +6,7 @@ import { TestController } from './controllers/test-controller';
 import ScrapeController  from './controllers/scrape-controller';
 import * as swaggerUi from 'swagger-ui-express';
 import * as YAML from 'yamljs';
-import ScraperManager from './scraper/scraper-manager'
+import ScraperManager from './scraper/pipeline-manager'
 
 var server:Server;
 

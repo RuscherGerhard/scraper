@@ -1,4 +1,4 @@
-import ScraperManager from '../scraper/scraper-manager'
+import ScraperManager from '../scraper/pipeline-manager'
 
 export default class ScrapeController{
 

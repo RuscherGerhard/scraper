@@ -2,6 +2,7 @@ import Worker from "./abstract-worker"
 import {WorkerKind} from "./abstract-worker"
 import puppeteer from 'puppeteer'
 import RedisIfc from "../storage/redis-ifc"
+import {cookyConsent} from "./scraper-utils/cooky-consent"
 
 export default class ScraperWorker extends Worker{
 
@@ -40,10 +41,16 @@ export default class ScraperWorker extends Worker{
                 // init page!!!
                 const page = await this.browser.newPage();
                 let HTTP_res:any = await page.goto(task);
+
                 await page.waitForFunction(
                     'window.performance.timing.loadEventEnd - window.performance.timing.navigationStart >= 500'
                 );
 
+                // consent click
+                if(!await cookyConsent(task, page)){
+                    return false;
+                }
+                
                 // copying html
                 let html_string:string = await page.content();
                 
@@ -64,14 +71,17 @@ export default class ScraperWorker extends Worker{
                     // making task and pushing in redis!
                     let key:{url:string, links:string[], data:string} = {url:task, links:links, data:html_string};
                     let result:any = await this.redisIFC.insertTask(key);
+
+                    // enqueue the scraped task to the downloader task queue!
                     this.taskEnqueue(task);
                 }
 
                 // close page and browser!
                 await page.close();
-                await this.browser.close();    
+                // await this.browser.close();    
             }
             catch(e:any){
+                console.log(`[Error] : ${e}`);
                 result = false;
             }
         return result;

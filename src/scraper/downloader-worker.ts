@@ -20,7 +20,7 @@ export default class DownloaderWorker extends Worker{
         this.redisIFC = RedisIfc.getInstance();
     }
 
-    protected async workerFunction(task: string): Promise<boolean> {
+    protected async workerFunction(task:string): Promise<boolean> {
         // signalize, that no download hat toook place yet, nor it was successful
         this.downloadResult = false;
 
@@ -31,6 +31,7 @@ export default class DownloaderWorker extends Worker{
         console.log(`dir name is ${proj_dir_name}`);
         console.log(`dir name is ${proj_pics_dir_name}`);
 
+        // make directories!
         if(!fileOps.mkDir(proj_dir_name)){
             return false;
         }
@@ -38,15 +39,20 @@ export default class DownloaderWorker extends Worker{
             return false;
         }
         
-        // fileOps.writeToFile('hello file' , proj_dir_name+'/pics/hello-file.txt')
+        
         try{
+
             console.log(`Downloading from ${task}`);
-            let redis_content: any = await this.redisIFC.getTask(task);
-            
+            let redis_content: any = JSON.parse(await this.redisIFC.getTask(task));
+
+            // save html
+            if(!fileOps.writeToFile(redis_content.data, proj_dir_name+'/'+name+'.html')){
+                return false;
+            }
+
             // compile an array out of the redis data
             let downloads:Promise<boolean>[] = [];
-            let link_array:string[] = JSON.parse(redis_content).links.slice(0,4);
-            
+            let link_array:string[] = redis_content.links.slice(0,4); // ingibit the download to the fst 4 images!
             
             // make promisses and push them
             for(let url of link_array){
@@ -59,7 +65,7 @@ export default class DownloaderWorker extends Worker{
             this.downloadResult = this.downloadResult || true;
         }catch(e){
             // catch all errors
-            console.log(`[ERROR] : Download fail ${e}`)
+            console.log(`[ERROR] : Download fail : ${e}`)
             this.downloadResult = this.downloadResult||false;
         }
         return this.downloadResult;
@@ -107,9 +113,6 @@ export default class DownloaderWorker extends Worker{
                 });
 
             });
-            
-            // wait for the download to end!
-            // await new Promise((resolve)=>{ setTimeout(resolve,10000); });
         
             let result:boolean = fileOps.writeToFile(buffer, file_name);
             

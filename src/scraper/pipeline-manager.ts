@@ -41,7 +41,6 @@ export default class PipelineManager{
 
     protected enqueueDownloaderTask(task:string){
         PipelineManager.downloaderTaskQueue.push(task);
-        console.log(PipelineManager.downloaderTaskQueue);
     }
 
     protected dequeueTaskCB():string{

@@ -1,4 +1,5 @@
 import {Redis} from "ioredis"
+import * as LogDump from "../utils/log-dump";
 
 type Task = {
     url:string,
@@ -6,12 +7,24 @@ type Task = {
     data:string
 };
 export default class RedisIfc{
+
     private static instance:RedisIfc = null;
-    // private redis:fakeRedis;
+    
     private redis:any;
-    private static connection_data:{host:string, port:number} = {
+
+    private ready:boolean = false;
+    
+    private static connection_data:{host:string, port:number, retry_strategy:(options:any)=>any} = {
         host:"localhost",
-        port:6379
+        port:6379,
+        retry_strategy: (options)=>{
+            if(options.error){
+                LogDump.logDump(`${options.error.code}`, LogDump.Kind.ERROR);
+                return new Error(`${options.error.code}`);
+            }
+            
+            return Math.min(options.attempt * 100, 20000);
+        }
     }
 
 
@@ -25,21 +38,18 @@ export default class RedisIfc{
 
     }
     private constructor(){
-        // try{
-        // this.redis = new Redis(
-        //     {
-        //         host:"localhost",
-        //         port: 6379
-        //     }
-        // );
-        // }catch(e){
-        //     console.warn(`[Error] : ${JSON.stringify(e)}`);
-        // }
+
         this.connectToRedis(RedisIfc.connection_data);
     }
 
     async insertTask(task:Task):Promise<{result:boolean, key:string}>{
         let url:string = task.url;
+
+        // check for redis connection
+        if(!this.ready){
+            LogDump.logDump("No Redis Connection", LogDump.Kind.ERROR);
+            return {result:false, key:""};
+        }
 
         // standard result
         let result:{result:boolean, key:string} = {result:true, key:url};
@@ -49,7 +59,8 @@ export default class RedisIfc{
         }
         catch(e){
             // in case redis db is not there!!!!
-            console.warn(`[Error] : ${JSON.stringify(e)}`);
+            
+            LogDump.logDump(JSON.stringify(e), LogDump.Kind.ERROR);
 
             result.result = false;
         }
@@ -57,7 +68,22 @@ export default class RedisIfc{
     }
 
     async getTask(url:string):Promise<string>{
-        return await this.redis.get(url);
+        // check for redis connection
+        let result:string = "";
+
+        try {
+            if(!this.ready){
+                LogDump.logDump("No Redis Connection", LogDump.Kind.ERROR);
+                return "";
+            }
+
+            result = await this.redis.get(url);
+        }catch(e){
+            LogDump.logDump(JSON.stringify(e), LogDump.Kind.ERROR);
+            result = "";
+        }
+
+        return result;
     }
    
     private async connectToRedis(connection_data:{host:string, port:number}){
@@ -65,18 +91,49 @@ export default class RedisIfc{
         try{
             // in case we want to reconnect
             if(this.redis != null){
-                console.log('[Info] : reconnecting to redis!');
+                LogDump.logDump("reconnecting to redis", LogDump.Kind.INFO);
                 this.redis = null;
             }
 
             this.redis = new Redis(
-                connection_data 
+                connection_data
             );
-            }catch(e){
+
+            // on connect
+            this.redis.on('connecting', ()=>{
+                LogDump.logDump('try connecting to redis',LogDump.Kind.INFO);
+                // this.ready = false;
+            })
+            // on ready
+            this.redis.on('ready', ()=>{
+                LogDump.logDump('connected to redis',LogDump.Kind.INFO);
+                this.ready = true;
+            });
+
+            // on error
+            this.redis.on('error', ()=>{
+                LogDump.logDump('redis : error occured',LogDump.Kind.ERROR);
+                this.ready = false;
+            });
+            // on reconnecting
+            // this.redis.on('reconnecting', ()=>{
+            //     LogDump.logDump('trying to reconnect to redis',LogDump.Kind.WARNING);
+            //     this.ready = false;
+            // });
+
+            // on end
+            this.redis.on('end', ()=>{
+                LogDump.logDump('ending connection to redis',LogDump.Kind.INFO);
+                this.ready = false;
+            });
+
+
+        }catch(e){
                 
-                console.warn(`[Error] : ${JSON.stringify(e)}`);
-                // setTimeout(()=>{this.connectToRedis(connection_data)}, 1000)
-            }
+                // console.warn(`[Error] : ${JSON.stringify(e)}`);
+                LogDump.logDump(JSON.stringify(e), LogDump.Kind.ERROR);
+                this.redis = null;
+        }
     }
 
 };

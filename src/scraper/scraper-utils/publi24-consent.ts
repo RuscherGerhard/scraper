@@ -1,4 +1,5 @@
 import * as Puppeteer from 'puppeteer'
+import * as LogDump from '../../utils/log-dump'
 
 export async function consent(page:Puppeteer.Page):Promise<boolean>{
     let result:boolean = false;
@@ -16,6 +17,7 @@ export async function consent(page:Puppeteer.Page):Promise<boolean>{
         
     } catch(e){
         console.log(`[Error] : ${e}`);
+        LogDump.logDump(`${e}`, LogDump.Kind.ERROR);
         return result;
     }
 

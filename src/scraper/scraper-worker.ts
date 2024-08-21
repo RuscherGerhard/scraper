@@ -3,6 +3,7 @@ import {WorkerKind} from "./abstract-worker"
 import puppeteer from 'puppeteer'
 import RedisIfc from "../storage/redis-ifc"
 import {cookyConsent} from "./scraper-utils/cooky-consent"
+import { logDump, Kind } from "../utils/log-dump"
 
 export default class ScraperWorker extends Worker{
 
@@ -27,8 +28,9 @@ export default class ScraperWorker extends Worker{
         let result = true;
 
         // scraping with puppeteer here!
-        
-            console.log(`Scraping ${task}`);
+        let key:{url:string, links:string[], data:string};
+            logDump(`Scraping ${task}`, Kind.INFO);
+
             try
             {
                 // init browser!!
@@ -69,11 +71,7 @@ export default class ScraperWorker extends Worker{
                     }
             
                     // making task and pushing in redis!
-                    let key:{url:string, links:string[], data:string} = {url:task, links:links, data:html_string};
-                    let result:any = await this.redisIFC.insertTask(key);
-
-                    // enqueue the scraped task to the downloader task queue!
-                    this.taskEnqueue(task);
+                    key = {url:task, links:links, data:html_string};
                 }
 
                 // close page and browser!
@@ -81,9 +79,17 @@ export default class ScraperWorker extends Worker{
                 // await this.browser.close();    
             }
             catch(e:any){
-                console.log(`[Error] : ${e}`);
+                
+                logDump(`${e}`, Kind.ERROR);
                 result = false;
             }
+        
+        result = (await this.redisIFC.insertTask(key)).result;
+        
+        // enqueue the scraped task to the downloader task queue!
+        if(result)
+            this.taskEnqueue(task);
+
         return result;
     }
 }

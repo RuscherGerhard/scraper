@@ -2,7 +2,7 @@ import Worker from "./abstract-worker"
 import { WorkerKind } from "./abstract-worker"
 import RedisIfc from "../storage/redis-ifc"
 import * as fileOps from "../utils/file-ops"
-// import * as Buffer from "buffer"
+import {logDump, Kind} from "../utils/log-dump";
 
 
 export default class DownloaderWorker extends Worker{
@@ -28,8 +28,6 @@ export default class DownloaderWorker extends Worker{
         let name:string = `Project_${task}`.replace('://', '-');
         let proj_dir_name:string = __dirname + name;
         let proj_pics_dir_name:string = `${proj_dir_name}/pics`;
-        console.log(`dir name is ${proj_dir_name}`);
-        console.log(`dir name is ${proj_pics_dir_name}`);
 
         // make directories!
         if(!fileOps.mkDir(proj_dir_name)){
@@ -41,9 +39,12 @@ export default class DownloaderWorker extends Worker{
         
         
         try{
-
-            console.log(`Downloading from ${task}`);
+            logDump(`Downloading from ${task}`, Kind.INFO)
             let redis_content: any = JSON.parse(await this.redisIFC.getTask(task));
+
+            if(redis_content == ""){
+                return false;
+            }
 
             // save html
             if(!fileOps.writeToFile(redis_content.data, proj_dir_name+'/'+name+'.html')){
@@ -52,7 +53,12 @@ export default class DownloaderWorker extends Worker{
 
             // compile an array out of the redis data
             let downloads:Promise<boolean>[] = [];
-            let link_array:string[] = redis_content.links.slice(0,4); // ingibit the download to the fst 4 images!
+
+            /**  
+             * TODO 
+             * split up the download into chunks, or else we risk mem overflow!
+             * */
+            let link_array:string[] = redis_content.links.slice(0,4); // inhibit the download to the fst 4 images!
             
             // make promisses and push them
             for(let url of link_array){
@@ -66,6 +72,7 @@ export default class DownloaderWorker extends Worker{
         }catch(e){
             // catch all errors
             console.log(`[ERROR] : Download fail : ${e}`)
+            logDump(`Download fail : ${e}`, Kind.ERROR);
             this.downloadResult = this.downloadResult||false;
         }
         return this.downloadResult;
@@ -85,9 +92,6 @@ export default class DownloaderWorker extends Worker{
         }
         
         try{
-            console.log(`downloading now ${url}`);
-            console.log(`filename is : ${file_name}`)
-
             // the buffer to save the downloaded data!
             let buffer:Buffer;
             
@@ -106,8 +110,8 @@ export default class DownloaderWorker extends Worker{
                             buffer = chunk;
                     });
                     response.on('end',function (){
+                        logDump(`Download of ${url} successful`, Kind.INFO);
                         request.end();
-                        console.log("[Info] : end download!");
                         resolve();
                     });
                 });
@@ -119,6 +123,7 @@ export default class DownloaderWorker extends Worker{
             return result;
         }catch(e){
             console.error(`[Error] : ${e}`);
+            logDump(`${e}`,Kind.ERROR);
             return false;
         }
     }

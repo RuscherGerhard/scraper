@@ -1,5 +1,6 @@
 
-// TODO Do we need this class??????
+import {logDump, Kind} from "../utils/log-dump";
+
 export enum WorkerKind{
     Scraper,
     Downloader
@@ -33,7 +34,8 @@ export default abstract class Worker{
     protected abstract workerFunction(task:any, self:Worker):Promise<boolean>;
 
     async worker(){
-        console.log(`[Info] : Starting worker with id ${this.iD} and kind ${this.kind}`);
+        // console.log(`[Info] : Starting worker with id ${this.iD} and kind ${this.kind}`);
+        logDump(`Starting worker with id ${this.iD} and kind ${this.kind}`, Kind.INFO);
         while(this.work)
         {
             // check for the next task!
@@ -41,12 +43,13 @@ export default abstract class Worker{
             if(next_task != null) {
                 // call workerFunction with the next task!
                 let result:boolean = await this.workerFunction(next_task, this);
-                console.log(`[Info] : succes ${result} kind ${this.kind}`);
+                logDump(`succes ${result} kind ${this.kind}`, Kind.INFO)
             } else {
                 // wait for 5 ms before checking the queue again!!!
                 await new Promise((resolve) => {setTimeout(resolve,100)});
             }
         }
-        console.log(`[Info] : Stopped worker with id ${this.iD} and kind ${this.kind}`);
+        
+        logDump(`Stopped worker with id ${this.iD} and kind ${this.kind}`, Kind.INFO);
     }
 };

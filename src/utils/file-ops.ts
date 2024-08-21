@@ -1,4 +1,5 @@
-import * as fs from 'fs';
+import * as fs from 'fs'
+import * as LogDump from "./log-dump"
 
 export function mkDir(dirName:string):boolean{
     let result = true;
@@ -7,7 +8,7 @@ export function mkDir(dirName:string):boolean{
         if(!fs.existsSync(dirName)){
         
                 fs.mkdirSync(dirName);
-                console.log(`[Info] : dir ${dirName} created!`); 
+                LogDump.logDump(`dir ${dirName} created!`, LogDump.Kind.INFO);
         }
     }catch(e){
         result = false;
@@ -28,13 +29,12 @@ export function dirExists(dirName:string):boolean{
 
 export function writeToFile(content:any, file_name:string):boolean{
     try{
-
-        console.log(`opening file with name ${file_name}`);
-        
+        LogDump.logDump(`opening file with name ${file_name}`, LogDump.Kind.INFO);
         fs.writeFileSync(file_name, content);
         return true;
     }catch(e){
-        console.error(`[Error] : ${e}`);
+        
+        LogDump.logDump(`${e}`, LogDump.Kind.ERROR);
         return false;
     }
 }
